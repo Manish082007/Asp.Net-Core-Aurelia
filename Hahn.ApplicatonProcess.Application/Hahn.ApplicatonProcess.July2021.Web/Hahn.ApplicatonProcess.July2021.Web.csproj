@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Version>1.0.0</Version>
+		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+		<StartupObject>Hahn.ApplicatonProcess.July2021.Web.Program</StartupObject>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<DockerTargetOS>Linux</DockerTargetOS>
+		<!--<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>-->
+		<DebugType>full</DebugType>
+		<ProjectGuid>{D53686F4-EADF-4BFA-94DB-530EBA5F6EAA}</ProjectGuid>
+	</PropertyGroup>
+
+	<Target Name="DebugRunWebpack" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('wwwroot\dist') ">
+		<!-- Ensure Node.js is installed -->
+		<Exec Command="node --version" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+		</Exec>
+		<Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
+
+		<!-- In development, the dist files won't exist on the first run or when cloning to
+				 a different machine, so rebuild them if not already present. -->
+		<Message Importance="high" Text="Performing first-run Webpack build..." />
+		<Exec Command="npm install" />
+		<Exec Command="npm ddp" />
+		<Exec Command="npm run webpack:Debug" />
+	</Target>
+
+	<Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
+		<!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
+		<Exec Command="npm install" />
+		<Exec Command="npm ddp" />
+		<Exec Command="npm run webpack:$(Configuration)" />
+
+		<!-- Include the newly-built files in the publish output -->
+		<ItemGroup>
+			<!-- First, clean up previously generated content that may have been removed. -->
+			<ContentWithTargetPath Remove="@(ContentWithTargetPath)" Condition="!Exists('%(Identity)')" />
+			<_WebpackFiles Include="wwwroot\dist\**" />
+			<ContentWithTargetPath Include="@(_WebpackFiles->'%(FullPath)')" RelativePath="%(_WebpackFiles.Identity)" TargetPath="%(_WebpackFiles.Identity)" CopyToPublishDirectory="Always" />
+		</ItemGroup>
+	</Target>
+
+	<ItemGroup>
+	  <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0">
+	    <TreatAsUsed>true</TreatAsUsed>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="5.0.1" />
+	  <PackageReference Include="Swashbuckle" Version="5.5.3" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="5.5.1" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="5.1.2" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="5.5.1" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.5.1" />
+	  <PackageReference Include="Swashbuckle.Examples" Version="3.12.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EditorConfigFiles Remove="D:\Dev\Hahn\Hahn.ApplicatonProcess.Application\Hahn.ApplicatonProcess.July2021.Web\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="D:\Dev\Hahn\Hahn.ApplicatonProcess.Application\Hahn.ApplicatonProcess.July2021.Web\.editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Hahn.ApplicatonProcess.July2021.Domain\Hahn.ApplicatonProcess.July2021.Domain.csproj">
+	    <TreatAsUsed>true</TreatAsUsed>
+	  </ProjectReference>
+	</ItemGroup>
+
+</Project>
